@@ -20,28 +20,6 @@ os.environ["CUDA_VISIBLE_DEVICES"]="0"
 args = args_parser()
 best_acc = 0
 
-def cls2label(root, dataset, class_path):
-    f = open(os.path.join(root, class_path.replace('dataset', dataset)), 'r')
-    line = f.readline()
-    cls2label_list ={}
-    while line:
-        line = line.strip('\n')
-        cls, label = line.split(' ')
-        cls2label_list[str(cls)] = str(label)
-        line = f.readline()
-    return cls2label_list
-
-def label2cls(root, dataset, class_path):
-    f = open(os.path.join(root, class_path.replace('dataset', dataset)), 'r')
-    line = f.readline()
-    label2cls_list ={}
-    while line:
-        line = line.strip('\n')
-        cls, label = line.split(' ')
-        label2cls_list[str(label)] = str(cls)
-        line = f.readline()
-    return label2cls_list
-
 def scaling(x):
     max, min = np.max(x), np.min(x)
     x = (x - min) / (max - min)
@@ -94,7 +72,7 @@ if __name__ == '__main__':
     args.dataset = 'dataset' # name
     pred_list = [0,0,0,1,0,1,0,1,1,2,2,1,2,2,2] # the classification result of a batch
     label_list = [0,0,0,0,0,1,1,1,1,1,2,2,2,2,2] # corresponding label
-    label2cls_list = {'0':'classA','1':'classB','2':'classC'}
+    label2cls_list = {'0':'classA','1':'classB','2':'classC'} # correspondence between class name and label
 
     plot_confusion_matrix(args.dataset, label_list, pred_list, label2cls_list)
 
