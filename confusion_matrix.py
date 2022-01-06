@@ -69,36 +69,6 @@ def scaling(x):
     x = (x - min) / (max - min)
     return x
 
-def show_cam_on_image(h_str,h_end, w_str,w_end, img, label, heat_map, img_save_path):
-    img_h, img_w = img.shape[:2]
-    heat_map = heat_map.reshape(heat_map.shape[1], heat_map.shape[2], 1)
-
-    feat_map = (heat_map - 0.5) + 1
-    feat_map = np.uint8(np.float32(feat_map))
-    feat_map = cv2.resize(feat_map, (img_w,img_h))
-    feat_map = cv2.applyColorMap(np.uint8(255*feat_map), cv2.COLORMAP_JET)
-    feat_map = np.float32(feat_map)
-    cv2.imwrite(img_save_path.replace('.tif', '_heatmap_bin.tif').replace('.jpg', '_heatmap_bin.jpg'),
-                np.uint8(feat_map))
-
-    heat_map = cv2.resize(heat_map, (img_w,img_h))
-    heat_map = cv2.applyColorMap(np.uint8(255*heat_map), cv2.COLORMAP_JET)
-    heat_map = np.float32(heat_map)
-    cam = heat_map + np.float32(img)
-    cam = cam / np.max(cam)
-
-    cv2.imwrite(img_save_path, np.uint8(img))
-
-    img_fusion = img*0.0 + heat_map*1.0
-    cv2.imwrite(img_save_path.replace('.tif', '_heatmap.tif').replace('.jpg', '_heatmap.jpg'),
-                np.uint8(img_fusion))
-
-
-    img_fusion = img*0.5 + heat_map*0.5
-    cv2.rectangle(img_fusion, (w_str, h_str), (w_end, h_end), (0, 255, 0), 3, 4)
-    cv2.imwrite(img_save_path.replace('.tif', '_bounding.tif').replace('.jpg', '_bounding.jpg'),
-                np.uint8(img_fusion))
-
 
 def plot_confusion_matrix(dataset, true_list, pred_list, label2cls_list):
 
@@ -138,78 +108,15 @@ def plot_confusion_matrix(dataset, true_list, pred_list, label2cls_list):
 
     plt.tight_layout()
 
-    plt.savefig('./save_status/confusion_matrix_' + dataset + '.pdf', format='pdf')
+    plt.savefig('./datapath_' + dataset + '.pdf', format='pdf')
     # plt.show()
 
 # attention
 if __name__ == '__main__':
-    # bulid model
-
-    n_classes = 45
-
-    model = torch.load(os.path.join('./checkpoints', 'ckpt.t7'))
-    print(model)
-
-    net = model.cuda().eval()
-    criterion = nn.CrossEntropyLoss().cuda()
-
-    cls2label_list = cls2label(args.data_dir, args.dataset, args.class_list)
-    label2cls_list = label2cls(args.data_dir, args.dataset, args.class_list)
-    data_list = make_list(args.data_dir, args.dataset, args.val_list)
-    normalize = transforms.Normalize(
-        mean=[0.485, 0.456, 0.406],
-        std=[0.229, 0.224, 0.225]
-        )
-    transform_s1 = transforms.Compose([
-        transforms.Resize(args.img_size),
-        transforms.CenterCrop(args.img_size),
-        transforms.ToTensor(),
-        normalize,
-        ])
-
-
-    # record loss
-    losses = AverageMeter()
-    accuracies = AverageMeter()
-    # random.shuffle(data_list)
-
-    cnt_total = 0
-    pred_list = []
-    label_list = []
-    i = 0
-    beg_time = time()
-    for data in data_list:
-        cnt_total += 1
-        img_pth = data['img_path']
-        label = int(data['label'])
-        # print (cnt_total, ': ', img_pth)
-        i = i+1
-        img_save_dir = './attvisual_image'
-        img_true_save_dir = './attvisual_image/true'
-        img_false_save_dir = './attvisual_image/false'
-        sta_save_dir = './save_status'
-        if not os.path.exists(img_save_dir):
-            os.makedirs(img_save_dir)
-        if not os.path.exists(img_true_save_dir):
-            os.makedirs(img_true_save_dir)
-        if not os.path.exists(img_false_save_dir):
-            os.makedirs(img_false_save_dir)
-        if not os.path.exists(sta_save_dir):
-            os.makedirs(sta_save_dir)
-
-        img = Image.open(img_pth).convert('RGB')
-        img_tensor_s1 = transform_s1(img)
-        # img_tensor_s2 = transform_s2(img)
-        img_tensor_s1 = img_tensor_s1.view(1, img_tensor_s1.size(0), img_tensor_s1.size(1), img_tensor_s1.size(2)).cuda()
-        # img_tensor_s2 = img_tensor_s2.view(1, img_tensor_s2.size(0), img_tensor_s2.size(1), img_tensor_s2.size(2)).cuda()
-        output = net(img_tensor_s1)
-        _, pred = torch.max(output, dim=1)
-        pred = int(pred.cpu().detach().numpy())
-        pred_list.append(44-pred)
-        label_list.append(label)
-
-    end_time = time()
-    print ("time: ", end_time - beg_time)
+    args.dataset = 'dataset' # name
+    pred_list = [0,0,0,1,0,1,0,1,1,2,2,1,2,2,2] # the classification result of a batch
+    label_list = [0,0,0,0,0,1,1,1,1,1,2,2,2,2,2] # corresponding label
+    label2cls_list = {'0':'classA','1':'classB','2':'classC'}
 
     plot_confusion_matrix(args.dataset, label_list, pred_list, label2cls_list)
 
