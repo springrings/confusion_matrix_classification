@@ -20,28 +20,6 @@ os.environ["CUDA_VISIBLE_DEVICES"]="0"
 args = args_parser()
 best_acc = 0
 
-def make_list(root, dataset, split_path):
-    list_path = os.path.join(root, split_path.replace('dataset', dataset))
-    data_list = []
-    class_dict = {}
-    f = open(list_path, 'r')
-    line = f.readline()
-    while line:
-        sample ={}
-        line = line.strip('\n')
-        img_path, label = line.split(' ')
-
-        sample['img_path'] = root + '/' + img_path
-        sample['label'] = label
-        data_list.append(sample)
-        if label not in class_dict.keys():
-            class_dict[label] = [img_path]
-        else:
-            class_dict[label].append(img_path)
-        line = f.readline()
-    f.close()
-    return data_list
-
 def cls2label(root, dataset, class_path):
     f = open(os.path.join(root, class_path.replace('dataset', dataset)), 'r')
     line = f.readline()
