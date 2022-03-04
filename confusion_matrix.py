@@ -1,30 +1,13 @@
 import os
-import torch
-import torch.nn as nn
-from models.full_model import *
-import torchvision.transforms as transforms
-from args import args_parser
-from val import validation
-from datasets import load_datasets
-from utils import *
-from PIL import Image
-import cv2
 import numpy as np
-from time import time
-import pdb
-import random
 import matplotlib.pyplot as plt
 from sklearn.metrics import confusion_matrix
 os.environ["CUDA_VISIBLE_DEVICES"]="0"
-
-args = args_parser()
-best_acc = 0
 
 def scaling(x):
     max, min = np.max(x), np.min(x)
     x = (x - min) / (max - min)
     return x
-
 
 def plot_confusion_matrix(dataset, true_list, pred_list, label2cls_list):
 
@@ -32,11 +15,9 @@ def plot_confusion_matrix(dataset, true_list, pred_list, label2cls_list):
     for key, value in label2cls_list.items():
         labels.append(value)
     tick_marks = np.float32(np.array(range(len(labels)))) + 0.5
-
     cm = confusion_matrix(true_list, pred_list)
     cm_norm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
     plt.figure()
-
     fontsize_axis = 4.2
     fontsize_prop = 2.53
     barsize = 5
@@ -65,14 +46,13 @@ def plot_confusion_matrix(dataset, true_list, pred_list, label2cls_list):
     plt.tight_layout()
 
     plt.savefig('./datapath_' + dataset + '.pdf', format='pdf')
-    # plt.show()
 
-# attention
+
+
 if __name__ == '__main__':
-    args.dataset = 'dataset' # name
-    pred_list = [0,0,0,1,0,1,0,1,1,2,2,1,2,2,2] # the classification result of a batch
-    label_list = [0,0,0,0,0,1,1,1,1,1,2,2,2,2,2] # corresponding label
-    label2cls_list = {'0':'classA','1':'classB','2':'classC'} # correspondence between class name and label
+    dataset = 'dataset' # dataset name
+    pred_list = [0,0,0,1,0,1,0,1,1,2,2,1,2,2,2,3,5,6,4,7,3,2,4,6,4,2,1] # the classification result of a batch
+    label_list =[0,0,0,0,0,1,1,1,1,1,2,2,2,2,2,4,5,6,4,7,3,4,3,6,7,4,3] # corresponding label
+    label2cls_list = {'0':'classA','1':'classB','2':'classC','3':'classD','4':'classE','5':'classF','6':'classG','7':'classH'} # correspondence between class name and label
 
-    plot_confusion_matrix(args.dataset, label_list, pred_list, label2cls_list)
-
+    plot_confusion_matrix(dataset, label_list, pred_list, label2cls_list)
